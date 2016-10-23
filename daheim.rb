@@ -40,6 +40,23 @@ post '/create-wg' do
   #refresh json
 end
 
+post '/change-wg-name' do
+  admin = User.get(params['admin'])
+  name = params['name']
+  if admin.nil? || admin.wg.nil?
+    return json :success => false, :error => "invalid user"
+  end
+  if name.nil? || name == ""
+    return json :success => false, :error => "invalid name"
+  end
+  unless admin.wg.admin == admin
+    return json :success => false, :error => "no privilege"
+  end
+
+  admin.wg.update :name => name;
+  return json :success => true
+end
+
 post '/invite' do
     #Init
     inviter = User.get( params['inviter'])
@@ -155,8 +172,16 @@ post '/show-invites' do
   end
   return json :success => true, :data => user.invites.map {|invite| {'sender' => invite.wg.admin.name, 'id' => invite.id}}
 end
-def show_wg(user)
-  return json :success => true, :view => "wg", :wg => user.wg, :user => user.wg.members.map {|x| user_to_json(x)}
+
+post '/show-wg' do
+  user = User.get(params['user'])
+  if user.nil?
+    return json :success => false, :error => "invalid user"
+  end
+  if user.wg.nil?
+    return json :success => false, :error => "no membership"
+  end
+  return json :success => true,  :data => {'wg' => user.wg.name, 'member' => user.wg.members.map {|m| {'name' => m.name, 'status' => m.status.name, 'admin' => m.wg.admin == m}}}
 end
 
 

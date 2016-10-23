@@ -32,10 +32,12 @@ class DaheimTest < Test::Unit::TestCase
 		return !obj.nil?
 	end
 
+
 	def test_use_case_1
 		user_name = 'A'
 		friend_name = 'B'
 		user = nil
+		log = []
 
 		#SETUP
 		if not_nil(user = User.get(user_name))
@@ -50,12 +52,14 @@ class DaheimTest < Test::Unit::TestCase
 		assert is_json(last_response.body), "no json result"
 		assert is_json_success(last_response.body), "no success" 
 		assert not_nil(User.get(user_name)), "User creation failed"
+		log << last_response.body
 
 		#CREATE FRIEND1
 		post '/create-user', :name => friend_name
 		assert is_json(last_response.body), "no json result"
 		assert is_json_success(last_response.body), "no success"
 		assert not_nil(User.get(friend_name)), "Friend creation failed"
+		log << last_response.body
 
 		#CREATE WG
 		post '/create-wg', :user => user_name
@@ -63,12 +67,14 @@ class DaheimTest < Test::Unit::TestCase
 		assert is_json_success(last_response.body), "no success"
 		assert not_nil(User.get(user_name).wg), "WG creation failed"
 		assert_equal User.get(user_name), User.get(user_name).wg.admin, "WG admin set failed"
+		log << last_response.body
 
 		#CHANGE NAME OF WG
 		post '/change-wg-name', :admin => user_name, :name => "AWG"
 		assert is_json(last_response.body), "no json result"
 		assert is_json_success(last_response.body), "no success"
 		assert_equal "AWG", User.get(user_name).wg.name, "name change failed"
+		log << last_response.body
 
 		#INVITE FRIEND1
 		post '/invite', :inviter =>  user_name, :invitee => friend_name
@@ -77,6 +83,7 @@ class DaheimTest < Test::Unit::TestCase
 		assert not_nil(User.get(user_name).wg), "user.wg nil"
 		assert not_nil(User.get(friend_name)), "friend nil"
 		assert not_nil(Invite.first(:wg => User.get(user_name).wg, :user => User.get(friend_name))), "Invite creation failed"
+		log << last_response.body
 
 		#FRIEND1 SHOWS NEW INVITES
 		post '/show-invites', :user => friend_name
@@ -86,6 +93,7 @@ class DaheimTest < Test::Unit::TestCase
 		assert not_nil(invites), "nil"
 		assert_equal user_name, invites[0]['sender'], "sender set failed"
 		join_id = invites[0]['id']
+		log << last_response.body
 
 		#FRIEND1 JOINS
 		post '/join', :user => friend_name, :invite => join_id
@@ -93,12 +101,14 @@ class DaheimTest < Test::Unit::TestCase
 		assert is_json_success(last_response.body), "no success"
 		assert_nil Invite.get(:wg => User.get(user_name).wg, :user => User.get(friend_name)), "Invite delete failed"
 		assert_equal User.get(user_name).wg, User.get(friend_name).wg, "wg join failed"
+		log << last_response.body
 
 		#USER CHANGE STATUS
 		post '/set-status', :user => user_name, :status => 2
 		assert is_json(last_response.body), "no json result"
 		assert is_json_success(last_response.body), "no success"
 		assert_equal 2, User.get(user_name).status.id, "status change failed"
+		log << last_response.body
 
 		#SHOW STATUS OF USER 
 		post '/show-wg', :user => friend_name
@@ -107,14 +117,20 @@ class DaheimTest < Test::Unit::TestCase
 		show_wg_result = JSON.parse(last_response.body)
 		assert_equal "AWG", show_wg_result['data']['wg'], "Wg NAME SHOW FAILED"
 		assert_equal 2, show_wg_result['data']['member'].length, "member count failed"
-		assert_equal
+		show_wg_result['data']['member'].each {|x| assert not_nil x['status']}
+		show_wg_result['data']['member'].each {|x| assert not_nil x['name']}
+		show_wg_result['data']['member'].each {|x| assert not_nil(x['admin']), "admin failed"}
 
-		#CLEANUP
-		#Gotta destroy that WG
-		
+		log << last_response.body
+
+		# WRITE LOG
+		log_path = "response.log"
+		open(log_path, 'w') do |f|
+			log.each{ |l| f.write(l + "\n")}
+		end	
 	end
 
-	def tes
+	#def tes
 
 	# def test_it_say_daheim
 	# 	get '/'
