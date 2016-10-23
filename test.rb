@@ -130,77 +130,47 @@ class DaheimTest < Test::Unit::TestCase
 		end	
 	end
 
-	#def tes
+	def assert_json_failure(body)
+		assert is_json(body), "NO JSON RESPONSE"
+		assert !is_json_success(body),  "BREACH: " + body
+	end
 
-	# def test_it_say_daheim
-	# 	get '/'
-	# 	assert last_response.ok?
-	# 	assert_equal 'DAHEIM', last_response.body
-	# end
+	def test_create_user
+		# NO USER
+		post '/create-user'
+		assert_json_failure last_response.body
 
-	#   #CREATE-WG
-	#   #Not exisiting user
-	# def test_create_wg_not_existing_user
-	# 	user = User.get("simon")
-	# 	if !user.nil?
-	# 	  user.destroy
-	# 	end 
-	# 	post '/create-wg', :name => 'simon'
-	# 	assert last_response.body.include?("\"success\":false")
-	#   end
-	#   #Valid user already in a wg
-	# def test_create_wg_user_already_wg
-	# 	  user = User.new
-	# 	  user.name = "simon"
-	# 	  user.wg = Wg.new
-	# 	  user.save
-	# 	  post '/create-wg', :name => 'simon'
-	# 	  assert last_response.body.include?("\"success\":false")
-	#   end
-	#   #Valid
-	# def test_create_wg_valid
-	# 	  user = User.first_or_create :name => 'simon'
-	# 	  user.wg = nil
-	# 	  user.save
-	# 	  post '/create-wg', :name => 'simon'
-	# 	  assert last_response.body.include?("\"success\":true")
-	# 	  user = User.get('simon')
-	# 	  assert !user.wg.nil?
-	#   end
-	  
-	# def test_create_invite
-	# 	inviter = User.first_or_create :name => 'inviter'
-	# 	inviter.wg = Wg.new(:admin => inviter)
-	# 	inviter.save
-	# 	invitee = User.first_or_create :name => 'invitee'
-	# 	invitee.wg = nil
-	# 	invitee.save
+		# EXISTING USER
+		User.first_or_create(:name => 'A').save
+		post '/create-user', :name => 'A'
+		assert_json_failure last_response.body
+	end
 
-	# 	post '/invite', :inviter => inviter.name, ":invitee" => invitee.name
-	# 	assert last_response.body.include?("\"success\":true")
-	# 	assert !(Invite.get(inviter.wg.id, invitee.name)).nil?
-	#   end
-	  
-	# def test_show
-	# 	  simon = User.first_or_create :name=> "simon"
-	# 	  test1 = User.first_or_create :name=> "test1"
-	# 	  test2 = User.first_or_create :name=> "test2"
-	# 	  puts simon.saved?
-	# 	  test1.save
-	# 	  test2.save
-	# 	  simon.save
-	# 	  puts simon.saved?
-	# 	  post '/create-wg', :user => test1.name
-	# 	  post '/create-wg', :user => test2.name
-		  
-	# 	  post '/invite', :inviter => test1.name, :invitee => "simon"
-	# 	  post '/invite', :inviter => test2.name, :invitee => "simon"
-	# 	  puts test2.name
-	# 	  post '/show', :user => simon.name
-	# 	  puts last_response.body
-	# 	  assert !last_response.body == ""
-	# end
-	# def test_list_user
-	# 	  post '/list-user'
-	# end
+	def test_create_wg
+		# NO USER
+		post '/create-wg'
+		assert_json_failure last_response.body
+
+		#EXISTING WG
+		if User.get('A').wg.nil?
+			wg = Wg.create :admin => User.get('A')
+			User.get('A').update :wg => wg
+		end
+		post '/create-wg', :user => 'A'
+		assert_json_failure last_response.body
+	end
+
+	def test_change_wg_name
+		# NO USER
+		post '/change-wg-name', :name => 'C'
+		assert_json_failure(last_response.body)
+
+		# NO USER
+		post '/change-wg-name', :user => 'A'
+		assert_json_failure(last_response.body)
+
+		#NOT ADMIN
+		post '/create-wg', :user => 'B', :name => 'C'
+		assert_json_failure(last_response.body)
+	end
 end

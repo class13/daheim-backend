@@ -20,6 +20,26 @@ get '/' do
   'DAHEIM'
 end
 
+#TESTED
+#Create User
+#param name: name for user
+post '/create-user' do
+  user_name = params['name']
+  user = User.get(user_name)
+  if user_name.nil?
+    return json :success => false, :error => "no parameter"
+  end
+  unless user.nil?
+    return json :success => false, :error => "already exists"
+  else
+    user = User.create :name => user_name
+    return json :success => true
+  end
+    
+end
+
+#Create WG
+#param user = name of active user
 post '/create-wg' do
   name = params['user']
   user = User.get(name)
@@ -41,6 +61,10 @@ post '/create-wg' do
   #refresh json
 end
 
+#Change name of wg of
+#param admin: name of admin
+#to
+#param name: new name of wg
 post '/change-wg-name' do
   admin = User.get(params['admin'])
   name = params['name']
@@ -58,6 +82,8 @@ post '/change-wg-name' do
   return json :success => true
 end
 
+#Invite 
+#param invitee: name of invitee
 post '/invite' do
     #Init
     inviter = User.get( params['inviter'])
@@ -128,36 +154,7 @@ post '/kick' do
       return json :success => true
 end
 
-post '/privilege' do
-  # Musst admin von seiner WG sein
-  admin = User.get(params['admin'])
-  target = User.get(params['target'])
-        
-        if target.nil?
-          return json :success => false, :error => "invalid target"
-        end
-        unless !admin.nil? &&  !target.wg.nil? && target.wg.admin == admin
-          return json :success => false, :error => "no privilege"
-        end
-  # Setze Admin von seiner Wg auf ihn
-        target.wg update :admin => target
-        return json :success => true
-end
 
-post '/create-user' do
-  user_name = params['name']
-	user = User.get(user_name)
-	if user_name.nil?
-		return json :success => false, :error => "no parameter"
-	end
-  unless user.nil?
-    return json :success => false, :error => "already exists"
-  else
-    user = User.create :name => user_name
-    return json :success => true
-  end
-    
-end
 
 def user_to_json(user)
   if user.nil?
@@ -185,19 +182,19 @@ post '/show-wg' do
   return json :success => true,  :data => {'wg' => user.wg.name, 'member' => user.wg.members.map {|m| {'name' => m.name, 'status' => m.status.name, 'admin' => m.wg.admin == m}}}
 end
 
-
-
-get '/list-user' do
-	json User.all.map {|x| user_to_json(x)}
-end
-post '/show' do
-    user = User.get(params['user'])
-      
-      if user.nil?
-        return json :success => false, :error => "invalid user"
-      end
-      if user.wg.nil?
-        return show_invite user
-      end
-   return show_wg user
+#UNTESTED
+post '/privilege' do
+  # Musst admin von seiner WG sein
+  admin = User.get(params['admin'])
+  target = User.get(params['target'])
+        
+        if target.nil?
+          return json :success => false, :error => "invalid target"
+        end
+        unless !admin.nil? &&  !target.wg.nil? && target.wg.admin == admin
+          return json :success => false, :error => "no privilege"
+        end
+  # Setze Admin von seiner Wg auf ihn
+        target.wg update :admin => target
+        return json :success => true
 end
