@@ -10,8 +10,9 @@ require  'dm-migrations'
 set :bind, '0.0.0.0'
 # Loads pre-defined DB Model!
 require './model.rb'
+require './connect.rb'
 #Setup DB
-DataMapper.setup(:default, 'mysql://root:?@127.0.0.1/daheim1')
+DataMapper.setup(:default, $connect_string)
 DataMapper.finalize
 DataMapper.auto_migrate!#upgrade!
   
@@ -138,24 +139,6 @@ post '/set-status' do
     
 end
 
-post '/kick' do
-    admin = User.get(params['admin'])
-    target = User.get(params['target'])
-      
-      if target.nil?
-        return json :success => false, :error => "invalid target"
-      end
-      unless !admin.nil? &&  !target.wg.nil? && target.wg.admin == admin
-        return json :success => false, :error => "no privilege"
-      end
-  # Musst Admin von seiner WG sein
-  # Setze WG zu null
-      target.update :wg => nil
-      return json :success => true
-end
-
-
-
 def user_to_json(user)
   if user.nil?
     return {'name' => "mystery"}
@@ -182,19 +165,39 @@ post '/show-wg' do
   return json :success => true,  :data => {'wg' => user.wg.name, 'member' => user.wg.members.map {|m| {'name' => m.name, 'status' => m.status.name, 'admin' => m.wg.admin == m}}}
 end
 
-#UNTESTED
-post '/privilege' do
-  # Musst admin von seiner WG sein
-  admin = User.get(params['admin'])
-  target = User.get(params['target'])
-        
-        if target.nil?
-          return json :success => false, :error => "invalid target"
-        end
-        unless !admin.nil? &&  !target.wg.nil? && target.wg.admin == admin
-          return json :success => false, :error => "no privilege"
-        end
-  # Setze Admin von seiner Wg auf ihn
-        target.wg update :admin => target
-        return json :success => true
+post '/list-status' do
+  return json :success => true, :data => Status.all
 end
+
+#UNTESTED WG HIRACHY SYSTEM
+# post '/privilege' do
+#   # Musst admin von seiner WG sein
+#   admin = User.get(params['admin'])
+#   target = User.get(params['target'])
+        
+#         if target.nil?
+#           return json :success => false, :error => "invalid target"
+#         end
+#         unless !admin.nil? &&  !target.wg.nil? && target.wg.admin == admin
+#           return json :success => false, :error => "no privilege"
+#         end
+#   # Setze Admin von seiner Wg auf ihn
+#         target.wg update :admin => target
+#         return json :success => true
+# end
+
+# post '/kick' do
+#     admin = User.get(params['admin'])
+#     target = User.get(params['target'])
+      
+#       if target.nil?
+#         return json :success => false, :error => "invalid target"
+#       end
+#       unless !admin.nil? &&  !target.wg.nil? && target.wg.admin == admin
+#         return json :success => false, :error => "no privilege"
+#       end
+#   # Musst Admin von seiner WG sein
+#   # Setze WG zu null
+#       target.update :wg => nil
+#       return json :success => true
+# end
