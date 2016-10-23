@@ -7,10 +7,11 @@ require 'data_mapper'
 require 'rubygems'
 require  'dm-migrations'
 
+set :bind, '0.0.0.0'
 # Loads pre-defined DB Model!
 require './model.rb'
 #Setup DB
-DataMapper.setup(:default, 'mysql://root:14081996@127.0.0.1/daheim1')
+DataMapper.setup(:default, 'mysql://root:?@127.0.0.1/daheim1')
 DataMapper.finalize
 DataMapper.auto_migrate!#upgrade!
   
