@@ -173,4 +173,19 @@ class DaheimTest < Test::Unit::TestCase
 		post '/create-wg', :user => 'B', :name => 'C'
 		assert_json_failure(last_response.body)
 	end
+
+	def test_list_status
+		post '/list-status'
+		assert is_json(last_response.body)
+		status_json_response = JSON.parse last_response.body
+		assert status_json_response['success']
+		status_list = status_json_response['data']
+		assert status_list.length > 0
+
+		i = 1
+		status_list.each do |s|
+			assert_equal i, s['id']
+			i++
+		end
+	end
 end
