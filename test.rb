@@ -188,4 +188,57 @@ class DaheimTest < Test::Unit::TestCase
 		# 	i++
 		# end
 	end
+
+	def test_privilege
+		post '/privilege', :actor => 'uff'
+		assert_json_failure last_response.body
+		post '/privilege', :target => 'uff'
+		assert_json_failure last_response.body
+
+		a = User.create(:name => 'E')
+		b = User.create(:name => 'F')
+		post '/create-wg', :user => a.name
+		is_json_success last_response.body
+		a = User.get(a.name)
+		b.update :wg => a.wg
+		post '/privilege', :actor => a.name, :target => b.name
+		is_json_success last_response.body
+		a = User.get(a.name)
+		assert_equal a.wg.admin, b
+
+		post '/privilege', :actor => a.name, :target => b.name
+		assert_json_failure last_response.body
+
+	end
+
+	def test_kick
+		post '/kick', :admin => 'uff'
+		assert_json_failure last_response.body
+		post '/kick', :target => 'uff'
+		assert_json_failure last_response.body
+		a = User.create(:name => 'G')
+		b = User.create(:name => 'H')
+		post '/create-wg', :user => a.name
+		is_json_success last_response.body
+		a = User.get(a.name)
+
+		post '/kick', :admin => 'G', :target => 'H'
+		is_json_success last_response.body
+		assert User.get(b.name).wg.nil?
+		#reset
+		b.update :wg => User.get(a.name).wg
+
+		#kick himself
+		post '/kick', :admin => 'H', :target => 'H'
+		assert is_json_success last_response.body
+		assert User.get(b.name).wg.nil?
+		#reset
+		b.update :wg => User.get(a.name).wg
+
+		#kick without privelege
+		post '/kick', :admin => 'F', :target => 'H'
+		assert_json_failure last_response.body
+
+
+	end
 end
