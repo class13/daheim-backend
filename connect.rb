@@ -1,6 +1,6 @@
 $db_user		= 'root'
-$db_pw			= '14081996'
-$db_host		= nil
+$db_pw			= nil
+$db_host		= '127.0.0.1'
 $db_schema		= 'daheim1'
 $db_test_schema = 'test_daheim'
 used_schema = $db_schema
