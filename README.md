@@ -1,2 +1,0 @@
-# daheim-backend
-SECRET
