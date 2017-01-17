@@ -1,0 +1,6 @@
+  # Updating one record:
+  Person.update(15, :user_name => 'Samuel', :group => 'expert')
+
+  # Updating multiple records:
+  people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
+  Person.update(people.keys, people.values)

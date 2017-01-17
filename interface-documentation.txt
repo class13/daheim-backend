@@ -1,0 +1,41 @@
+#DAHEIM-API INTERFACE DOCUMENTATION
+#create-user
+#request
+{
+	name: "..."
+}
+#response
+{
+	success: true,
+	uuid: "85749vb5498zv4z39j" //generated uuid
+}
+
+#join-home
+#request
+{
+	pssid: "457v4ne9sdf",
+	uuid: "t5z5bg6r5frgz"
+}
+#response (success)
+{
+	success: true,
+	home: 33 //home.id
+}
+#response (missing db object )
+{
+	success: false,
+	error: "entry ... missing"
+}
+
+#create-home
+#request
+{
+	pssid: "457v4ne9sdf",
+	uuid: "t5z5bg6r5frgz",
+	name: "home"
+}
+#response
+{
+	success: true,
+	home: 33
+}
