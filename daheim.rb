@@ -49,12 +49,12 @@ end
 
 post '/join-home' do
   begin
-    validate_not_null ["pssid", "uuid"]
+    validate_not_null ["bssid", "uuid"]
   rescue Exception => e
     return return_error e.ca
   end
   #init
-  pssid = @params['pssid']
+  pssid = @params['bssid']
   uuid = @params['uuid']
   home = Home.find_by({:pssid => pssid})
   user = User.find_by({:uuid => uuid})
@@ -72,18 +72,18 @@ post '/join-home' do
   #join
   user.update({:home => home})
   #response
-  return json :success => true, :home => home.id
+  return json :success => true
 end
 
 post '/create-home' do
   #request validation
   begin
-    validate_not_null ['pssid', 'name', 'uuid']
+    validate_not_null ['bssid', 'name', 'uuid']
   rescue Exception => error
     return return_error error.message
   end
   #init
-  pssid = @params['pssid']
+  pssid = @params['bssid']
   name = @params['name']
   uuid = @params['uuid']
   user = User.find_by({:uuid => uuid})
@@ -97,5 +97,5 @@ post '/create-home' do
   #join user 2 group
   user.update({:home => home})
   #response
-  return json :success => true, :home => home.id
+  return json :success => true
 end
