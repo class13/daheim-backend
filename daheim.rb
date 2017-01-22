@@ -83,7 +83,7 @@ post '/create-home' do
     return return_error error.message
   end
   #init
-  pssid = @params['bssid']
+  bssid = @params['bssid']
   name = @params['name']
   uuid = @params['uuid']
   user = User.find_by({:uuid => uuid})
@@ -92,10 +92,33 @@ post '/create-home' do
     return return_error "entry user missing"
   end
   #creation
-  home = Home.create({:pssid => pssid, :name => name})
+  home = Home.create({:bssid => bssid, :name => name})
 
   #join user 2 group
-  user.update({:home => home})
+  user.home = home.id
+  user.save
   #response
   return json :success => true
+end
+
+def validate_user 
+  validate_not_null ['uuid']
+  @user = User.find_by :uuid => @params['uuid']
+  if @user.nil?
+    raise "access denied"
+  end
+end
+
+post '/check-home' do
+  begin
+    validate_not_null ['bssid']
+    validate_user
+    home_detail = HomeDetail.find_by :bssid => @params['bssid']
+    if home_detail.nil?
+      return json :success => true, :home => nil
+    end
+    return json :success => true, :home => {:name => home_detail.name, :user => home_detail.user}
+  rescue Exception => e
+    return return_error e.message
+  end
 end

@@ -13,13 +13,12 @@
 #join-home
 #request
 {
-	pssid: "457v4ne9sdf",
+	bssid: "457v4ne9sdf",
 	uuid: "t5z5bg6r5frgz"
 }
 #response (success)
 {
-	success: true,
-	home: 33 //home.id
+	success: true
 }
 #response (missing db object )
 {
@@ -30,12 +29,26 @@
 #create-home
 #request
 {
-	pssid: "457v4ne9sdf",
+	bssid: "457v4ne9sdf",
 	uuid: "t5z5bg6r5frgz",
 	name: "home"
 }
 #response
 {
+	success: trues
+}
+
+#check-home
+#request
+{
+	bssid: "frf4fefefsds",
+	uuid: "dfsdfdsgsdgsdf"
+}
+#response
+{
 	success: true,
-	home: 33
+	home: {
+		name: "asdf",
+		user: 2
+	}
 }
