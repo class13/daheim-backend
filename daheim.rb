@@ -32,76 +32,28 @@ def validate_not_null(field_array)
   end
 end
 
-def return_error(error)
-  return json :success => false, :error => error
+def return_response(success, data)
+  return json({:success => success}.merge(data))
 end
 
-post '/create-user' do
-  name = @params['name']
+def return_error(error)
+  return return_response(false, {:error => error})
+end
+
+def return_success(data = {})
+  return return_response true, data
+end
+
+def create_uuid
   uuid = ""
   loop do 
     uuid = SecureRandom.uuid
     break if User.where('uuid' => uuid).empty?
   end 
-  User.create({:name => name, :uuid => uuid})
-  json :success => true, :uuid => uuid
+  return uuid
 end
 
-post '/join-home' do
-  begin
-    validate_not_null ["bssid", "uuid"]
-  rescue Exception => e
-    return return_error e.ca
-  end
-  #init
-  pssid = @params['bssid']
-  uuid = @params['uuid']
-  home = Home.find_by({:pssid => pssid})
-  user = User.find_by({:uuid => uuid})
-  #validate
-  error = nil
-  if home.nil?
-    error = "entry home missing"
-  end
-  if user.nil?
-    error = "entry user missing"
-  end
-  unless error.nil?
-    return return_error error
-  end
-  #join
-  user.update({:home => home})
-  #response
-  return json :success => true
-end
-
-post '/create-home' do
-  #request validation
-  begin
-    validate_not_null ['bssid', 'name', 'uuid']
-  rescue Exception => error
-    return return_error error.message
-  end
-  #init
-  bssid = @params['bssid']
-  name = @params['name']
-  uuid = @params['uuid']
-  user = User.find_by({:uuid => uuid})
-  #valdation
-  if user.nil?
-    return return_error "entry user missing"
-  end
-  #creation
-  home = Home.create({:bssid => bssid, :name => name})
-
-  #join user 2 group
-  user.home = home.id
-  user.save
-  #response
-  return json :success => true
-end
-
-def validate_user 
+def put_user 
   validate_not_null ['uuid']
   @user = User.find_by :uuid => @params['uuid']
   if @user.nil?
@@ -109,16 +61,81 @@ def validate_user
   end
 end
 
-post '/check-home' do
+def put_home
+  validate_not_null 'bssid'
+  bssid = @params['bssid']
+  @home = Home.find_by :bssid => bssid
+  if @home.nil?
+    raise "no home found"
+  end
+end
+
+def put_home_detail_optional
+    @home_detail = HomeDetail.find_by :bssid => @params['bssid']
+end
+
+post '/create-user' do
   begin
-    validate_not_null ['bssid']
-    validate_user
-    home_detail = HomeDetail.find_by :bssid => @params['bssid']
-    if home_detail.nil?
-      return json :success => true, :home => nil
-    end
-    return json :success => true, :home => {:name => home_detail.name, :user => home_detail.user}
+    validate_not_null ['name']
+    name = @params['name']
+    uuid = create_uuid
+    User.create({:name => name, :uuid => uuid})
+    return return_success :uuid => uuid
   rescue Exception => e
     return return_error e.message
   end
 end
+
+post '/join-home' do
+  begin
+    validate_not_null %w(bssid, uuid)
+    put_user
+    put_home
+    #join
+    @user.update({:home => home})
+    #response
+    return return_success
+  rescue Exception => e
+    return return_error e.message
+  end
+end
+
+def build_home
+  validate_not_null ['bssid', 'name']
+  @home = Home.new :bssid => @params['bssid'], :name => @params['name']
+end
+
+post '/create-home' do
+  #request validation
+  begin
+
+    validate_not_null ['bssid', 'name', 'uuid']
+    put_user
+    build_home
+    #TODO: does not work
+    if Home.exists?(@home.id)
+      raise 'home already exists'
+    end
+    @home.save
+    @user.update :home => @home.id
+    return return_success
+  rescue Exception => error
+    return return_error error.message
+  end
+end
+
+#TODO: Untested
+post '/check-home' do
+  begin
+    validate_not_null ['bssid']
+    put_user
+    put_home_detail_optional
+    unless @home_detail.nil?
+      home = {:name => @home_detail.name, :user => @home_detail.user}
+    end
+    return return_success :home => home
+  rescue Exception => e
+    return return_error e.message
+  end
+end
+
