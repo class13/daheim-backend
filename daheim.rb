@@ -62,7 +62,7 @@ def put_user
 end
 
 def put_home
-  validate_not_null 'bssid'
+  validate_not_null ['bssid']
   bssid = @params['bssid']
   @home = Home.find_by :bssid => bssid
   if @home.nil?
@@ -70,8 +70,19 @@ def put_home
   end
 end
 
+def put_home_optional
+  validate_not_null ['bssid']
+  bssid = @params['bssid']
+  @home = Home.find_by :bssid => bssid
+end
+
 def put_home_detail_optional
     @home_detail = HomeDetail.find_by :bssid => @params['bssid']
+end
+
+def build_home
+  validate_not_null ['bssid', 'name']
+  @home = Home.new :bssid => @params['bssid'], :name => @params['name']
 end
 
 post '/create-user' do
@@ -88,11 +99,11 @@ end
 
 post '/join-home' do
   begin
-    validate_not_null %w(bssid, uuid)
+    validate_not_null ['bssid', 'uuid']
     put_user
     put_home
     #join
-    @user.update({:home => home})
+    @user.update({:home => @home.id})
     #response
     return return_success
   rescue Exception => e
@@ -100,10 +111,6 @@ post '/join-home' do
   end
 end
 
-def build_home
-  validate_not_null ['bssid', 'name']
-  @home = Home.new :bssid => @params['bssid'], :name => @params['name']
-end
 
 post '/create-home' do
   #request validation
@@ -112,8 +119,7 @@ post '/create-home' do
     validate_not_null ['bssid', 'name', 'uuid']
     put_user
     build_home
-    #TODO: does not work
-    if Home.exists?(@home.id)
+    unless (Home.find_by :bssid => @params['bssid']).nil?
       raise 'home already exists'
     end
     @home.save
@@ -127,7 +133,7 @@ end
 #TODO: Untested
 post '/check-home' do
   begin
-    validate_not_null ['bssid']
+    validate_not_null ['bssid', 'uuid']
     put_user
     put_home_detail_optional
     unless @home_detail.nil?
