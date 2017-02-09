@@ -130,7 +130,6 @@ post '/create-home' do
   end
 end
 
-#TODO: Untested
 post '/check-home' do
   begin
     validate_not_null ['bssid', 'uuid']
@@ -143,5 +142,26 @@ post '/check-home' do
   rescue Exception => e
     return return_error e.message
   end
+end
+
+def put_home_of_user
+  @home = Home.find @user.home
+  if @home.nil?
+    raise "no home"
+  end
+end
+
+post '/show-home' do
+  # begin
+    validate_not_null ['uuid']
+    put_user
+    put_home_of_user
+    users = []
+    memberstatus = Memberstatus.where :home => @home.id
+
+    return return_success :home_name => @home.name, :users => users
+  # rescue Exception =>  e
+  #   return return_error e.message
+  # end
 end
 

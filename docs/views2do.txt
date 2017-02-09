@@ -1,0 +1,2 @@
+view users2home userid und homeid
+view memberstatus homeid, primary key user id, username, userstatus
