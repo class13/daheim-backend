@@ -157,8 +157,7 @@ post '/show-home' do
     put_user
     put_home_of_user
     users = []
-    memberstatus = Memberstatus.where :home => @home.id
-
+    users = Memberstatus.where(:home => @home.id).collect{|m| {:name => m.NAME, :status => m.STATUS}}
     return return_success :home_name => @home.name, :users => users
   # rescue Exception =>  e
   #   return return_error e.message

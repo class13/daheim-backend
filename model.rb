@@ -12,5 +12,6 @@ class HomeDetail < ActiveRecord::Base
 end
 
 class Memberstatus < ActiveRecord::Base
-	self.table_name = "MEMBERSTATUS"
+	self.table_name = "USER_TO_HOME"
+	self.primary_key = "USER"
 end
