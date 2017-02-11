@@ -85,6 +85,13 @@ def build_home
   @home = Home.new :bssid => @params['bssid'], :name => @params['name']
 end
 
+def put_home_of_user
+  @home = Home.find @user.home
+  if @home.nil?
+    raise "no home"
+  end
+end
+
 post '/create-user' do
   begin
     validate_not_null ['name']
@@ -96,6 +103,7 @@ post '/create-user' do
     return return_error e.message
   end
 end
+
 
 post '/join-home' do
   begin
@@ -144,23 +152,17 @@ post '/check-home' do
   end
 end
 
-def put_home_of_user
-  @home = Home.find @user.home
-  if @home.nil?
-    raise "no home"
-  end
-end
 
 post '/show-home' do
-  # begin
+  begin
     validate_not_null ['uuid']
     put_user
     put_home_of_user
     users = []
     users = Memberstatus.where(:home => @home.id).collect{|m| {:name => m.NAME, :status => m.STATUS}}
     return return_success :home_name => @home.name, :users => users
-  # rescue Exception =>  e
-  #   return return_error e.message
-  # end
+  rescue Exception =>  e
+    return return_error e.message
+  end
 end
 
