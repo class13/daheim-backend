@@ -92,6 +92,14 @@ def put_home_of_user
   end
 end
 
+def is_int(field_array)
+	field_array.each do |f|
+		unless @params[f].is_a? Integer
+		raise 'invalid parameter ' + f
+		end
+	end
+end
+
 post '/create-user' do
   begin
     validate_not_null ['name']
@@ -164,5 +172,17 @@ post '/show-home' do
   rescue Exception =>  e
     return return_error e.message
   end
+end
+
+post '/set-status' do
+	begin
+		validate_not_null ['uuid', 'status']
+		is_int ['status']
+		put_user
+		@user.update :status => @params['status']
+		return return_success
+	rescue Exception =>  e
+		return return_error e.message
+	end
 end
 
