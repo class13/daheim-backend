@@ -1,10 +1,9 @@
 # myapp.rb
+require 'rubygems'
 require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'active_record'
-
 require 'sinatra/json'
-require 'rubygems'
 require 'securerandom'
 #require 'rack/contrib'
 
