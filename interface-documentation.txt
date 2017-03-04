@@ -46,9 +46,25 @@
 }
 #response
 {
-	success: true,
-	home: {
+	"success": true,
+	"home": {
 		name: "asdf",
 		user: 2
 	}
+}
+#show-home
+#request
+{
+	"uuid": "235rwets"
+}
+#response
+{
+	"success": true,
+	"home_name": "wg",
+	"users": [
+		{"name": "luki",
+		"status": 1},
+		{"name": "remzi",
+		"status": 2}
+	]
 }
