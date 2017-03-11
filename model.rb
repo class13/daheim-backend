@@ -6,6 +6,9 @@ end
 class Home < ActiveRecord::Base
   self.table_name = "homes"
 end
+class Status < ActiveRecord::Base
+  self.table_name = "user_status"
+end
 
 class HomeDetail < ActiveRecord::Base
 	self.table_name = "v_home_detail"

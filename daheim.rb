@@ -178,7 +178,7 @@ post '/set-status' do
 		validate_not_null ['uuid', 'status']
 		is_int ['status']
 		put_user
-		@user.update :status => @params['status']
+		Status.create :user => @user.id, :status => @params['status']
 		return return_success
 	rescue Exception =>  e
 		return return_error e.message
