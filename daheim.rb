@@ -146,17 +146,17 @@ post '/create-home' do
 end
 
 post '/check-home' do
-  begin
+  #begin
     validate_not_null ['bssid', 'uuid']
     put_user
     put_home_detail_optional
     unless @home_detail.nil?
-      home = {:name => @home_detail.name, :user => @home_detail.user}
+      home = {:name => @home_detail.name, :user => @home_detail.users}
     end
     return return_success :home => home
-  rescue Exception => e
-    return return_error e.message
-  end
+  #rescue Exception => e
+  #  return return_error e.message
+  #end
 end
 
 
@@ -166,7 +166,7 @@ post '/show-home' do
     put_user
     put_home_of_user
     users = []
-    users = Memberstatus.where(:home => @home.id).collect{|m| {:name => m.NAME, :status => m.STATUS}}
+    users = Memberstatus.where(:home => @home.id).collect{|m| {:name => m.name, :status => m.status}}
     return return_success :home_name => @home.name, :users => users
   rescue Exception =>  e
     return return_error e.message
